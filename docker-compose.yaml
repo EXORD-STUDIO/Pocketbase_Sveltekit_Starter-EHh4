@@ -1,0 +1,30 @@
+services:
+  pocketbase:
+    build:
+      context: ./pb
+      dockerfile: Dockerfile
+      args:
+        - VERSION=0.22.24
+    container_name: pocketbase
+    restart: unless-stopped
+
+    ports:
+      - "8090:8080"
+    volumes:
+      - ./pb_data:/pb_data
+      - ./pb_migrations:/pb_migrations #optional
+      - ./pb_hooks:/pb_hooks #optional
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:8080/api/health || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  svelte-kit:
+    build:
+      context: .
+      dockerfile: .sk/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+    command: [ "node", "build" ]
